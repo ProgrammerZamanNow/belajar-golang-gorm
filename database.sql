@@ -31,3 +31,5 @@ alter table users
     add column last_name varchar(100) null after middle_name;
 
 select * from users;
+
+delete from users where id = '1'
