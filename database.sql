@@ -18,4 +18,16 @@ create table users
     primary key (id)
 ) engine = InnoDB;
 
+select *
+from users;
+
+alter table users
+    rename column name to first_name;
+
+alter table users
+    add column middle_name varchar(100) null after first_name;
+
+alter table users
+    add column last_name varchar(100) null after middle_name;
+
 select * from users;
