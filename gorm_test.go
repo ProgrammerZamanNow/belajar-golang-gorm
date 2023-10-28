@@ -125,3 +125,74 @@ func TestBatchInsert(t *testing.T) {
 	assert.Nil(t, result.Error)
 	assert.Equal(t, 8, int(result.RowsAffected))
 }
+
+func TestTransactionSuccess(t *testing.T) {
+	err := db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Create(&User{ID: "10", Password: "rahasia", Name: Name{FirstName: "User 10"}}).Error
+		if err != nil {
+			return err
+		}
+
+		err = tx.Create(&User{ID: "11", Password: "rahasia", Name: Name{FirstName: "User 11"}}).Error
+		if err != nil {
+			return err
+		}
+
+		err = tx.Create(&User{ID: "12", Password: "rahasia", Name: Name{FirstName: "User 12"}}).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	assert.Nil(t, err)
+}
+
+func TestTransactionRollback(t *testing.T) {
+	err := db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Create(&User{ID: "13", Password: "rahasia", Name: Name{FirstName: "User 13"}}).Error
+		if err != nil {
+			return err
+		}
+
+		err = tx.Create(&User{ID: "11", Password: "rahasia", Name: Name{FirstName: "User 11"}}).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	assert.NotNil(t, err)
+}
+
+func TestManualTransactionSuccess(t *testing.T) {
+	tx := db.Begin()
+	defer tx.Rollback()
+
+	err := tx.Create(&User{ID: "13", Password: "rahasia", Name: Name{FirstName: "User 13"}}).Error
+	assert.Nil(t, err)
+
+	err = tx.Create(&User{ID: "14", Password: "rahasia", Name: Name{FirstName: "User 14"}}).Error
+	assert.Nil(t, err)
+
+	if err == nil {
+		tx.Commit()
+	}
+}
+
+func TestManualTransactionError(t *testing.T) {
+	tx := db.Begin()
+	defer tx.Rollback()
+
+	err := tx.Create(&User{ID: "15", Password: "rahasia", Name: Name{FirstName: "User 15"}}).Error
+	assert.Nil(t, err)
+
+	err = tx.Create(&User{ID: "14", Password: "rahasia", Name: Name{FirstName: "User 14"}}).Error
+	assert.Nil(t, err)
+
+	if err == nil {
+		tx.Commit()
+	}
+}
