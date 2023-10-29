@@ -100,3 +100,26 @@ create table addresses
 ) engine = innodb;
 
 desc addresses;
+
+create table products
+(
+    id         varchar(100) not null,
+    name       varchar(100) not null,
+    price      bigint       not null,
+    created_at timestamp    not null default current_timestamp,
+    updated_at timestamp    not null default current_timestamp on update current_timestamp,
+    primary key (id)
+) engine = innodb;
+
+desc products;
+
+create table user_like_product
+(
+    user_id    varchar(100) not null,
+    product_id varchar(100) not null,
+    primary key (user_id, product_id),
+    foreign key (user_id) references users (id),
+    foreign key (product_id) references products (id)
+) engine = innodb;
+
+desc user_like_product;
