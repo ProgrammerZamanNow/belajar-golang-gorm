@@ -131,3 +131,7 @@ SELECT * FROM `wallets` WHERE id = '2' LIMIT 1;
 SELECT * FROM `users` WHERE `users`.`id` = '2';
 
 SELECT * FROM `addresses` WHERE `addresses`.`user_id` = '2';
+
+select * from wallets;
+
+select count(id) from users;
