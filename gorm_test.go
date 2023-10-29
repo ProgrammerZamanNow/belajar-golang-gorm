@@ -741,3 +741,39 @@ func TestJoinWithCondition(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 4, len(users))
 }
+
+func TestCount(t *testing.T) {
+	var count int64
+	err := db.Model(&User{}).Joins("Wallet").Where("Wallet.balance > ?", 500000).Count(&count).Error
+	assert.Nil(t, err)
+	assert.Equal(t, int64(4), count)
+}
+
+type AggregationResult struct {
+	TotalBalance int64
+	MinBalance   int64
+	MaxBalance   int64
+	AvgBalance   float64
+}
+
+func TestAggregation(t *testing.T) {
+	var result AggregationResult
+	err := db.Model(&Wallet{}).Select("sum(balance) as total_balance", "min(balance) as min_balance",
+		"max(balance) as max_balance", "avg(balance) as avg_balance").Take(&result).Error
+	assert.Nil(t, err)
+
+	assert.Equal(t, int64(4000000), result.TotalBalance)
+	assert.Equal(t, int64(1000000), result.MinBalance)
+	assert.Equal(t, int64(1000000), result.MaxBalance)
+	assert.Equal(t, float64(1000000), result.AvgBalance)
+}
+
+func TestAggregationGroupByAndHaving(t *testing.T) {
+	var results []AggregationResult
+	err := db.Model(&Wallet{}).Select("sum(balance) as total_balance", "min(balance) as min_balance",
+		"max(balance) as max_balance", "avg(balance) as avg_balance").
+		Joins("User").Group("User.id").Having("sum(balance) > ?", 500000).
+		Find(&results).Error
+	assert.Nil(t, err)
+	assert.Equal(t, 4, len(results))
+}
