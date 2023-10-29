@@ -123,3 +123,11 @@ create table user_like_product
 ) engine = innodb;
 
 desc user_like_product;
+
+select * from addresses;
+
+SELECT * FROM `wallets` WHERE id = '2' LIMIT 1;
+
+SELECT * FROM `users` WHERE `users`.`id` = '2';
+
+SELECT * FROM `addresses` WHERE `addresses`.`user_id` = '2';
