@@ -629,3 +629,67 @@ func TestPreloadManyToManyUser(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(user.LikeProducts))
 }
+
+func TestAssociationFind(t *testing.T) {
+	var product Product
+	err := db.Take(&product, "id = ?", "P001").Error
+	assert.Nil(t, err)
+
+	var users []User
+	err = db.Model(&product).Where("users.first_name LIKE ?", "User%").Association("LikedByUsers").Find(&users)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(users))
+}
+
+func TestAssociationAppend(t *testing.T) {
+	var user User
+	err := db.Take(&user, "id = ?", "3").Error
+	assert.Nil(t, err)
+
+	var product Product
+	err = db.Take(&product, "id = ?", "P001").Error
+	assert.Nil(t, err)
+
+	err = db.Model(&product).Association("LikedByUsers").Append(&user)
+	assert.Nil(t, err)
+}
+
+func TestAssociationReplace(t *testing.T) {
+	err := db.Transaction(func(tx *gorm.DB) error {
+		var user User
+		err := tx.Take(&user, "id = ?", "1").Error
+		assert.Nil(t, err)
+
+		wallet := Wallet{
+			ID:      "01",
+			UserId:  user.ID,
+			Balance: 1000000,
+		}
+
+		err = tx.Model(&user).Association("Wallet").Replace(&wallet)
+		return err
+	})
+	assert.Nil(t, err)
+}
+
+func TestAssociationDelete(t *testing.T) {
+	var user User
+	err := db.Take(&user, "id = ?", "3").Error
+	assert.Nil(t, err)
+
+	var product Product
+	err = db.Take(&product, "id = ?", "P001").Error
+	assert.Nil(t, err)
+
+	err = db.Model(&product).Association("LikedByUsers").Delete(&user)
+	assert.Nil(t, err)
+}
+
+func TestAssociationClear(t *testing.T) {
+	var product Product
+	err := db.Take(&product, "id = ?", "P001").Error
+	assert.Nil(t, err)
+
+	err = db.Model(&product).Association("LikedByUsers").Clear()
+	assert.Nil(t, err)
+}
